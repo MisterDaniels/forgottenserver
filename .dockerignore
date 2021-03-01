@@ -1,0 +1,29 @@
+# Github settings/actions and all
+.github
+.gitignore
+.gitattributes
+README.md
+LICENSE
+
+# Visual Studio folder
+/vc14
+
+# Editor config
+.editorconfig
+appveyor.yml
+
+# Pipeline settings
+.travis.yml
+Dockerfile
+
+# Docker builder things
+docker-compose.yml
+/docker
+
+# Environment variables
+.env
+.env.*
+
+# Database things
+*.sql
+/database

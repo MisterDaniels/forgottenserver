@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+    server:
+        container_name: server
+        restart: unless-stopped
+        env_file: .env
+        build:
+            context: .
+            dockerfile: ./docker/Dockerfile
+            args: 
+                - DOCKER_WORK_DIR=${DOCKER_WORK_DIR}
+        volumes: 
+            - './config.lua:${DOCKER_WORK_DIR}/config.lua'
+        working_dir: ${DOCKER_WORK_DIR}
+        entrypoint: './tfs'
+        depends_on: 
+            - database
+        links: 
+            - database
+
+    database:
+        image: mariadb:10.3
+        command: --innodb-flush-method=fsync
+        container_name: database
+        restart: unless-stopped
+        env_file: .env
+        ports:
+            - '3308:3306'
+        volumes: 
+            - './database:/var/lib/mysql'

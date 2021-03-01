@@ -181,3 +181,9 @@ pip-log.txt
 ## TFS / OT
 #############
 config.lua
+
+# Environment variables
+.env
+
+# Database
+/database
