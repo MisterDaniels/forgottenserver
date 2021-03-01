@@ -10,6 +10,9 @@ services:
             dockerfile: ./docker/Dockerfile
             args: 
                 - DOCKER_WORK_DIR=${DOCKER_WORK_DIR}
+        ports:
+            - '7171:7171'
+            - '7172:7172'
         volumes: 
             - './config.lua:${DOCKER_WORK_DIR}/config.lua'
         working_dir: ${DOCKER_WORK_DIR}
