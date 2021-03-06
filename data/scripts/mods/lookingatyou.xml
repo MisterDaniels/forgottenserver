@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mod name="lookingatyou" version="1.0" author="Daniel Silva" contact="https://github.com/MisterDaniels" enabled="yes">
+    <config name="lookingatyou-config">
+        <![CDATA[
+            anonymous = false
+            hiddenAccess = 3
+            messageType = MESSAGE_STATUS_DEFAULT
+        ]]>
+    </config>
+    <event type="look" name="lookingatyou-event" event="script">
+        <![CDATA[
+            function onLook(cid, thing, position, lookDistance)
+                if (isPlayer(thing.uid) and getPlayerAccess(cid) < hiddenAccess) then
+                    doPlayerSendTextMessage(thing.uid, messageType, 
+                        (anonymous and "Someone" or getPlayerName(cid)) .. " esta dando look em você!")
+                end
+
+                return true
+            end
+        ]]>
+    </event>
+
+    <event type="login" name="lookingatyou-login" event="buffer">
+        <![CDATA[
+            registerCreatureEvent(cid, "lookingatyou-event")
+            _result = true
+        ]]>
+    </event>
+</mod>
