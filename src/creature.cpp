@@ -73,8 +73,8 @@ bool Creature::canSee(const Position& myPos, const Position& pos, int32_t viewRa
 	}
 
 	const int_fast32_t offsetz = myPos.getZ() - pos.getZ();
-	return (pos.getX() >= myPos.getX() - viewRangeX + offsetz) && (pos.getX() <= myPos.getX() + viewRangeX + offsetz)
-		&& (pos.getY() >= myPos.getY() - viewRangeY + offsetz) && (pos.getY() <= myPos.getY() + viewRangeY + offsetz);
+	return (pos.getX() >= myPos.getX() - Map::maxViewportX + offsetz) && (pos.getX() <= myPos.getX() + Map::maxViewportX + offsetz)
+		&& (pos.getY() >= myPos.getY() - Map::maxViewportY + offsetz) && (pos.getY() <= myPos.getY() + Map::maxViewportY + offsetz);
 }
 
 bool Creature::canSee(const Position& pos) const
@@ -501,9 +501,16 @@ void Creature::onCreatureMove(Creature* creature, const Tile* newTile, const Pos
 			//check if any of our summons is out of range (+/- 2 floors or 30 tiles away)
 			std::forward_list<Creature*> despawnList;
 			for (Creature* summon : summons) {
+				if (summon->hasCondition(CONDITION_MOVING)) {
+					summon->removeCondition(CONDITION_MOVING);
+				}
+
 				const Position& pos = summon->getPosition();
-				if (Position::getDistanceZ(newPos, pos) > 2 || (std::max<int32_t>(Position::getDistanceX(newPos, pos), Position::getDistanceY(newPos, pos)) > 30)) {
-					despawnList.push_front(summon);
+				Tile* destTile = g_game.map.getTile(newPos);
+
+				if (Position::getDistanceZ(newPos, pos) > 0 || (std::max<int32_t>(Position::getDistanceX(newPos, pos), Position::getDistanceY(newPos, pos)) > 12)) {
+					g_game.map.moveCreature(*summon, *destTile);	
+					g_game.addMagicEffect(pos, CONST_ME_TELEPORT);
 				}
 			}
 
@@ -815,6 +822,15 @@ void Creature::drainHealth(Creature* attacker, int32_t damage)
 	}
 }
 
+void Creature::changeMana(int32_t manaChange)
+{
+	if (manaChange > 0) {
+		mana += std::min<int32_t>(manaChange, getMaxMana() - mana);
+	} else {
+		mana = std::max<int32_t>(0, mana + manaChange);
+	}
+}
+
 BlockType_t Creature::blockHit(Creature* attacker, CombatType_t combatType, int32_t& damage,
                                bool checkDefense /* = false */, bool checkArmor /* = false */, bool /* field = false */, bool /* ignoreResistances = false */)
 {
@@ -1011,6 +1027,14 @@ void Creature::addDamagePoints(Creature* attacker, int32_t damagePoints)
 
 	uint32_t attackerId = attacker->id;
 
+	if (attacker->isSummon()) {
+		Creature* master = attacker->getMaster();
+
+		if (Player* player = master->getPlayer()) {
+			attackerId = player->id;
+		}
+	}
+
 	auto it = damageMap.find(attackerId);
 	if (it == damageMap.end()) {
 		CountBlock_t cb;
@@ -1113,6 +1137,10 @@ bool Creature::onKilledCreature(Creature* target, bool)
 void Creature::onGainExperience(uint64_t gainExp, Creature* target)
 {
 	if (gainExp == 0 || !master) {
+		return;
+	}
+
+	if (this->getMonster() || master->getMonster()) {
 		return;
 	}
 

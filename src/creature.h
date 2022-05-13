@@ -43,10 +43,12 @@ enum slots_t : uint8_t {
 	CONST_SLOT_FEET = 8,
 	CONST_SLOT_RING = 9,
 	CONST_SLOT_AMMO = 10,
-	CONST_SLOT_STORE_INBOX = 11,
+	CONST_SLOT_ORDER = 11,
+	CONST_SLOT_INFO = 12,
+	CONST_SLOT_STORE_INBOX = 13,
 
 	CONST_SLOT_FIRST = CONST_SLOT_HEAD,
-	CONST_SLOT_LAST = CONST_SLOT_AMMO,
+	CONST_SLOT_LAST = CONST_SLOT_INFO,
 };
 
 struct FindPathParams {
@@ -152,6 +154,9 @@ class Creature : virtual public Thing
 		virtual RaceType_t getRace() const {
 			return RACE_NONE;
 		}
+		virtual RaceType_t getRace2() const {
+			return RACE_NONE;
+		}
 		virtual Skulls_t getSkull() const {
 			return skull;
 		}
@@ -228,6 +233,17 @@ class Creature : virtual public Thing
 			return healthMax;
 		}
 
+		uint32_t getMana() const {
+			return mana;
+		}
+		virtual uint32_t getMaxMana() const {
+			return 0;
+		}
+
+		virtual uint64_t getMonsterExperience() const {
+			return monsterExperience;
+		}
+
 		const Outfit_t getCurrentOutfit() const {
 			return currentOutfit;
 		}
@@ -293,6 +309,9 @@ class Creature : virtual public Thing
 			return summons;
 		}
 
+		void addSummon(Creature* creature);
+		void removeSummon(Creature* creature);
+
 		virtual int32_t getArmor() const {
 			return 0;
 		}
@@ -341,7 +360,13 @@ class Creature : virtual public Thing
 		void gainHealth(Creature* healer, int32_t healthGain);
 		virtual void drainHealth(Creature* attacker, int32_t damage);
 
+		virtual void changeMana(int32_t manaChange);
+
 		virtual bool challengeCreature(Creature*) {
+			return false;
+		}
+
+		virtual bool convinceCreature(Creature*) {
 			return false;
 		}
 
@@ -392,6 +417,8 @@ class Creature : virtual public Thing
 		virtual void onFollowCreatureDisappear(bool) {}
 
 		virtual void onCreatureSay(Creature*, SpeakClasses, const std::string&) {}
+
+		virtual void onCreatureConvinced(const Creature*, const Creature*) {}
 
 		virtual void onPlacedCreature() {}
 
@@ -512,6 +539,10 @@ class Creature : virtual public Thing
 		int32_t varSpeed = 0;
 		int32_t health = 1000;
 		int32_t healthMax = 1000;
+
+		uint32_t mana = 0;
+
+		uint64_t monsterExperience = 0;
 
 		Outfit_t currentOutfit;
 		Outfit_t defaultOutfit;
