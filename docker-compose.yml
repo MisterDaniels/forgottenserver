@@ -1,4 +1,4 @@
-version: '3'
+version: '3.2'
 
 services:
     server:
@@ -14,7 +14,9 @@ services:
             - '7171:7171'
             - '7172:7172'
         volumes: 
-            - './config.lua:${DOCKER_WORK_DIR}/config.lua'
+            - type: bind
+              source: ./config.lua
+              target: ${DOCKER_WORK_DIR}/config.lua
         working_dir: ${DOCKER_WORK_DIR}
         entrypoint: './tfs'
         depends_on: 
